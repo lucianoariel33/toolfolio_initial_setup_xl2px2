@@ -6,10 +6,8 @@ export default defineSchema({
     title: v.string(),
     description: v.string(),
     url: v.string(),
-    imageUrl: v.string(),
-    iconUrl: v.string(),
+    image: v.string(),
+    icon: v.string(),
     tags: v.array(v.string()),
-    createdBy: v.string(),
-  })
-    .index("by_tag", ["tags"]),
+  }),
 });

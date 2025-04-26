@@ -1,44 +1,37 @@
 import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 
-export function ToolGrid({ 
+export function ToolGrid({
   selectedTag,
   setSelectedTag,
   searchQuery,
-  isAdmin
-}: { 
+}: {
   selectedTag: string | null;
   setSelectedTag: (tag: string | null) => void;
   searchQuery: string;
-  isAdmin: boolean;
 }) {
-  const tools = useQuery(api.tools.list, { 
-    tag: selectedTag ?? undefined,
-    searchQuery: searchQuery || undefined
+  const tools = useQuery(api.tools.list) || [];
+  
+  const filteredTools = tools.filter(tool => {
+    const matchesSearch = tool.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tool.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTag = !selectedTag || tool.tags.includes(selectedTag);
+    return matchesSearch && matchesTag;
   });
 
-  if (!tools) {
-    return (
-      <div className="flex justify-center items-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
-      </div>
-    );
-  }
-
-  // Get unique tags from all tools
   const allTags = Array.from(new Set(tools.flatMap(tool => tool.tags)));
 
   return (
-    <div className="space-y-6">
-      <div className="flex gap-2 flex-wrap">
+    <div>
+      <div className="mb-6 flex flex-wrap gap-2">
         {allTags.map(tag => (
           <button
             key={tag}
             onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
             className={`px-3 py-1 rounded-full text-sm ${
               selectedTag === tag
-                ? "bg-indigo-500 text-white"
-                : "bg-gray-100 hover:bg-gray-200"
+                ? "bg-orange-500 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
             {tag}
@@ -47,28 +40,29 @@ export function ToolGrid({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tools.map((tool) => (
-          <div key={tool._id} className="border rounded-lg overflow-hidden hover:shadow-lg transition">
-            <div className="aspect-video relative">
+        {filteredTools.map(tool => (
+          <div key={tool._id} className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div className="relative">
               <img
-                src={tool.imageUrl}
+                src={tool.image}
                 alt={tool.title}
-                className="w-full h-full object-cover"
+                className="w-full h-48 object-cover"
               />
               <img
-                src={tool.iconUrl}
+                src={tool.icon}
                 alt={`${tool.title} icon`}
-                className="absolute bottom-4 left-4 w-12 h-12 rounded-lg shadow-lg"
+                className="absolute bottom-0 right-0 transform translate-y-1/2 w-12 h-12 rounded-lg shadow-lg border-2 border-white"
               />
             </div>
             <div className="p-4">
-              <h3 className="font-bold text-lg mb-2">{tool.title}</h3>
+              <h3 className="text-xl font-semibold mb-2">{tool.title}</h3>
               <p className="text-gray-600 mb-4">{tool.description}</p>
               <div className="flex flex-wrap gap-2 mb-4">
                 {tool.tags.map(tag => (
                   <span
                     key={tag}
-                    className="bg-gray-100 px-2 py-1 rounded-full text-sm"
+                    onClick={() => setSelectedTag(tag)}
+                    className="px-2 py-1 bg-gray-100 text-sm text-gray-700 rounded-full cursor-pointer hover:bg-gray-200"
                   >
                     {tag}
                   </span>
@@ -78,7 +72,7 @@ export function ToolGrid({
                 href={tool.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-indigo-500 hover:text-indigo-600 font-medium"
+                className="text-orange-500 hover:text-orange-600 font-medium"
               >
                 Visit Tool →
               </a>
